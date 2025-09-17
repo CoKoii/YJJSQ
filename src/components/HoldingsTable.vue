@@ -48,28 +48,33 @@
 
           <!-- 占比 -->
           <template v-else-if="column.key === 'ratio'">
-            <span style="color: #c44bf7; font-weight: 500"
+            <span style="font-weight: bold; font-size: 18px"
               >{{ getBossRatio(record.bossAmount) }}%</span
             >
           </template>
 
           <!-- 我应投入 -->
           <template v-else-if="column.key === 'shouldInvest'">
-            <span style="color: black; font-weight: 500">{{
-              formatMoney(getShouldInvest(record.bossAmount))
-            }}</span>
+            <span>{{ formatMoney(getShouldInvest(record.bossAmount)) }}</span>
           </template>
 
           <!-- 我目前投入 -->
           <template v-else-if="column.key === 'myActualAmount'">
-            <span style="color: #ff4d4f; font-weight: 500">{{
-              formatMoney(record.myActualAmount)
-            }}</span>
+            <span
+              :style="{
+                color:
+                  record.myActualAmount < getShouldInvest(record.bossAmount)
+                    ? '#ff4d4f'
+                    : 'inherit',
+                fontWeight: '500',
+              }"
+              >{{ formatMoney(record.myActualAmount) }}</span
+            >
           </template>
 
           <!-- 我的投入占比 -->
           <template v-else-if="column.key === 'myRatio'">
-            <span style="color: #c44bf7; font-weight: 500"
+            <span style="font-weight: bold; font-size: 18px"
               >{{ getMyRatio(record.myActualAmount) }}%</span
             >
           </template>
@@ -159,7 +164,7 @@ const columns = [
   {
     title: '基金名称',
     key: 'name',
-    width: 160,
+    width: 180,
   },
   {
     title: '大佬持仓金额',
@@ -174,12 +179,6 @@ const columns = [
     align: 'center',
   },
   {
-    title: '我应投入',
-    key: 'shouldInvest',
-    width: 80,
-    align: 'center',
-  },
-  {
     title: '我的持仓金额',
     key: 'myActualAmount',
     width: 80,
@@ -188,6 +187,12 @@ const columns = [
   {
     title: '我的投入占比',
     key: 'myRatio',
+    width: 80,
+    align: 'center',
+  },
+  {
+    title: '我应投入',
+    key: 'shouldInvest',
     width: 80,
     align: 'center',
   },
@@ -371,9 +376,22 @@ function handleImport(file) {
 </script>
 
 <style scoped>
+.holdings-table {
+  font-size: 16px;
+}
+
+.holdings-table :deep(.ant-table) {
+  font-size: 16px;
+}
+
 .holdings-table :deep(.ant-table-thead > tr > th) {
   background-color: #fafafa;
   font-weight: 600;
+  font-size: 16px;
+}
+
+.holdings-table :deep(.ant-table-tbody > tr > td) {
+  font-size: 16px;
 }
 
 .holdings-table :deep(.ant-table-tbody > tr:hover > td) {
