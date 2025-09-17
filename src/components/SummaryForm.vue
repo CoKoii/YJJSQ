@@ -11,8 +11,10 @@
               :min="0"
               :precision="2"
               style="width: 100%"
-              :formatter="(value) => ` ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')"
-              :parser="(value) => value.replace(/\s?|(,*)/g, '')"
+              :formatter="
+                (value) => (value ? `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',') : '')
+              "
+              :parser="(value) => (value ? value.replace(/,/g, '') : '')"
             />
           </a-form-item>
         </a-col>
@@ -48,8 +50,10 @@
               :min="0"
               :precision="2"
               style="width: 100%"
-              :formatter="(value) => ` ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')"
-              :parser="(value) => value.replace(/\s?|(,*)/g, '')"
+              :formatter="
+                (value) => (value ? `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',') : '')
+              "
+              :parser="(value) => (value ? value.replace(/,/g, '') : '')"
             />
           </a-form-item>
         </a-col>
@@ -85,7 +89,7 @@
 </template>
 
 <script setup>
-import { ref, watch } from 'vue'
+import { ref } from 'vue'
 import { useFundStore } from '../stores/fund'
 
 const fundStore = useFundStore()
@@ -93,21 +97,6 @@ const fundStore = useFundStore()
 // 本地状态，用于编辑
 const localBossTotal = ref(fundStore.bossTotal)
 const localMyTotal = ref(fundStore.myTotal)
-
-// 监听 store 变化，同步到本地状态
-watch(
-  () => fundStore.bossTotal,
-  (newVal) => {
-    localBossTotal.value = newVal
-  },
-)
-
-watch(
-  () => fundStore.myTotal,
-  (newVal) => {
-    localMyTotal.value = newVal
-  },
-)
 
 // 格式化金额
 function formatMoney(value) {
