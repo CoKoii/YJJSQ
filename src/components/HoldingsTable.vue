@@ -29,6 +29,7 @@
         :data-source="fundStore.holdings"
         :pagination="false"
         row-key="id"
+        size="small"
       >
         <!-- 基金名称 -->
         <template #bodyCell="{ column, record }">
@@ -48,9 +49,7 @@
 
           <!-- 占比 -->
           <template v-else-if="column.key === 'ratio'">
-            <span style="font-weight: bold; font-size: 18px"
-              >{{ getBossRatio(record.bossAmount) }}%</span
-            >
+            <span style="font-weight: bold">{{ getBossRatio(record.bossAmount) }}%</span>
           </template>
 
           <!-- 我应投入 -->
@@ -74,9 +73,7 @@
 
           <!-- 我的投入占比 -->
           <template v-else-if="column.key === 'myRatio'">
-            <span style="font-weight: bold; font-size: 18px"
-              >{{ getMyRatio(record.myActualAmount) }}%</span
-            >
+            <span style="font-weight: bold">{{ getMyRatio(record.myActualAmount) }}%</span>
           </template>
 
           <!-- 操作 -->
@@ -185,7 +182,7 @@ const columns = [
     align: 'center',
   },
   {
-    title: '我的投入占比',
+    title: '占比',
     key: 'myRatio',
     width: 80,
     align: 'center',
