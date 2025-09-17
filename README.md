@@ -6,7 +6,7 @@
 
 ## 功能特性
 
-- 📊 **仓位总览** - 实时显示大佬总仓位、个人总仓位和比例关系
+- 📊 **仓位总览** - 编辑显示大佬总仓位、个人总仓位和比例关系
 - 📈 **持仓明细** - 详细管理每个基金的投资信息
 - ⚡ **自动计算** - 根据大佬投资比例自动计算个人应投金额
 - 💾 **数据持久化** - 自动保存数据到本地存储
@@ -139,56 +139,6 @@ pnpm build:prod
 
 ```sh
 pnpm deploy:preview
-```
-
-## 部署说明
-
-### GitHub Pages 自动部署
-
-本项目配置了 GitHub Actions 自动部署到 GitHub Pages。当推送代码到 `main` 分支时，会自动触发构建和部署流程。
-
-#### 部署问题排查
-
-如果遇到部署失败，常见原因和解决方案：
-
-1. **Action 版本过时**
-
-   ```yaml
-   # 错误：使用已弃用的版本
-   uses: actions/upload-pages-artifact@v2
-
-   # 正确：使用最新版本
-   uses: actions/upload-pages-artifact@v3
-   ```
-
-2. **权限配置**
-   - 确保仓库设置中启用了 GitHub Pages
-   - 检查 Actions 权限设置允许读写
-
-3. **构建失败**
-   - 检查 Node.js 版本兼容性
-   - 确认依赖安装成功
-   - 验证构建命令正确
-
-#### 手动部署
-
-如果自动部署失败，可以手动部署：
-
-```sh
-# 1. 构建项目
-pnpm build
-
-# 2. 将 dist 目录内容上传到 GitHub Pages
-# 或使用 gh-pages 工具
-npm install -g gh-pages
-gh-pages -d dist
-```
-
-### 本地部署测试
-
-```sh
-# 构建并在本地预览生产版本
-pnpm build && pnpm preview
 ```
 
 ## 许可证
