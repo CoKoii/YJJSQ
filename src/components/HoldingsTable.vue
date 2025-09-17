@@ -225,8 +225,8 @@ function formatMoney(value) {
 
 // 计算大佬持仓占比
 function getBossRatio(amount) {
-  if (fundStore.bossCurrentTotal === 0) return '0.00'
-  return ((amount / fundStore.bossCurrentTotal) * 100).toFixed(2)
+  if (fundStore.bossTotal === 0) return '0.00'
+  return ((amount / fundStore.bossTotal) * 100).toFixed(2)
 }
 
 // 计算我应投入的金额

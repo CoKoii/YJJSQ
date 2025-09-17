@@ -12,83 +12,11 @@ export const useFundStore = defineStore(
     const holdings = ref([
       {
         id: 1,
-        name: '华夏恒生科技 ETF 联接 (QDII) C',
-        code: '89870',
-        bossAmount: 89870, // 大佬持仓金额
-        myAmount: 898.7, // 我的投入金额
-        myActualAmount: 0, // 我目前投入的金额
-      },
-      {
-        id: 2,
-        name: '永赢先进制造智管混合 C',
-        code: '63448',
-        bossAmount: 63448,
-        myAmount: 634.48,
-        myActualAmount: 0,
-      },
-      {
-        id: 3,
-        name: '嘉实上证科创板50 ETF 联接 C',
-        code: '62922',
-        bossAmount: 62922,
-        myAmount: 629.22,
-        myActualAmount: 0,
-      },
-      {
-        id: 4,
-        name: '博时中证机器人ETF C',
-        code: '25169',
-        bossAmount: 25169,
-        myAmount: 251.69,
-        myActualAmount: 0,
-      },
-      {
-        id: 5,
-        name: '易方达创新50 联接 C',
-        code: '19769',
-        bossAmount: 19769,
-        myAmount: 197.69,
-        myActualAmount: 0,
-      },
-      {
-        id: 6,
-        name: '德邦半导体业混合 C',
-        code: '19440',
-        bossAmount: 19440,
-        myAmount: 194.4,
-        myActualAmount: 0,
-      },
-      {
-        id: 7,
-        name: '天弘创业板 ETF 联接 C',
-        code: '18821',
-        bossAmount: 18821,
-        myAmount: 188.21,
-        myActualAmount: 0,
-      },
-      {
-        id: 8,
-        name: '北信瑞丰产业升级聚焦混合型',
-        code: '9000',
-        bossAmount: 9000,
-        myAmount: 90,
-        myActualAmount: 0,
-      },
-      {
-        id: 9,
-        name: '德邦股票增长灵活配置混合 C',
-        code: '3000',
-        bossAmount: 3000,
-        myAmount: 30,
-        myActualAmount: 30,
-      },
-      {
-        id: 10,
-        name: '永赢信息产业智管混合 C',
-        code: '2000',
-        bossAmount: 2000,
-        myAmount: 20,
-        myActualAmount: 2000,
+        name: '示例基金',
+        code: '00000',
+        bossAmount: 35000, // 大佬持仓金额
+        myAmount: 350, // 我的投入金额
+        myActualAmount: 350, // 我目前投入的金额
       },
     ])
 
