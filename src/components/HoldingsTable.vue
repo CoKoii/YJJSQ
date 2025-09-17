@@ -109,7 +109,7 @@
           />
         </a-form-item>
 
-        <a-form-item label="我目前投入金额（元）" name="myActualAmount">
+        <a-form-item label="我的持仓金额	（元）" name="myActualAmount">
           <a-input-number
             v-model:value="formData.myActualAmount"
             :min="0"
