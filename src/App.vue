@@ -20,17 +20,20 @@ import HoldingsTable from './components/HoldingsTable.vue'
   min-height: 100vh;
   background-color: #f0f2f5;
   padding: 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 }
 
 .app-content {
-  max-width: 1400px;
+  max-width: 1500px;
   margin: 0 auto;
 }
 
 /* 全局样式覆盖 */
 :deep(.ant-card) {
   border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 :deep(.ant-card-head-title) {
