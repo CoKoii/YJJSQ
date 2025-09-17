@@ -30,6 +30,7 @@
         :pagination="false"
         row-key="id"
         size="small"
+        bordered
       >
         <!-- 基金名称 -->
         <template #bodyCell="{ column, record }">
@@ -109,7 +110,7 @@
           />
         </a-form-item>
 
-        <a-form-item label="我的持仓金额	（元）" name="myActualAmount">
+        <a-form-item label="我已投入	（元）" name="myActualAmount">
           <a-input-number
             v-model:value="formData.myActualAmount"
             :min="0"
@@ -169,7 +170,13 @@ const columns = [
     align: 'right',
   },
   {
-    title: '我的持仓金额',
+    title: '我应投入',
+    key: 'shouldInvest',
+    width: 80,
+    align: 'right',
+  },
+  {
+    title: '我已投入',
     key: 'myActualAmount',
     width: 80,
     align: 'right',
@@ -177,12 +184,6 @@ const columns = [
   {
     title: '占比',
     key: 'myRatio',
-    width: 80,
-    align: 'right',
-  },
-  {
-    title: '我应投入',
-    key: 'shouldInvest',
     width: 80,
     align: 'right',
   },
