@@ -213,7 +213,6 @@ const formData = reactive({
 
 const formRules = {
   name: [{ required: true, message: '请输入基金名称' }],
-  code: [{ required: true, message: '请输入基金代码' }],
   bossAmount: [{ required: true, message: '请输入大佬持仓金额' }],
 }
 
