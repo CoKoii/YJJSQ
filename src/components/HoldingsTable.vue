@@ -29,7 +29,6 @@
         :data-source="fundStore.holdings"
         :pagination="false"
         row-key="id"
-        size="small"
       >
         <!-- 基金名称 -->
         <template #bodyCell="{ column, record }">
