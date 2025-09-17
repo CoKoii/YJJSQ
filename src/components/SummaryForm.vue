@@ -59,7 +59,7 @@
         </a-col>
 
         <a-col :span="6">
-          <a-form-item label="我已投入金额（元）">
+          <a-form-item label="当前我的总投入（元）">
             <a-input
               :value="formatMoney(Number(fundStore.actualInvestedTotal))"
               readonly
@@ -75,7 +75,7 @@
         </a-col>
 
         <a-col :span="6">
-          <a-form-item label="我应投入金额（元）">
+          <a-form-item label="我应投入总金额（元）">
             <a-input
               :value="formatMoney(Number(fundStore.shouldInvestTotal))"
               readonly
