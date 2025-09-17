@@ -59,16 +59,9 @@
 
           <!-- 我目前投入 -->
           <template v-else-if="column.key === 'myActualAmount'">
-            <span
-              :style="{
-                color:
-                  record.myActualAmount < getShouldInvest(record.bossAmount)
-                    ? '#ff4d4f'
-                    : 'inherit',
-                fontWeight: '500',
-              }"
-              >{{ formatMoney(record.myActualAmount) }}</span
-            >
+            <span style="color: #ff4d4f; font-weight: 500">{{
+              formatMoney(record.myActualAmount)
+            }}</span>
           </template>
 
           <!-- 我的投入占比 -->
@@ -167,37 +160,37 @@ const columns = [
     title: '大佬持仓金额',
     key: 'bossAmount',
     width: 80,
-    align: 'center',
+    align: 'right',
   },
   {
     title: '占比',
     key: 'ratio',
     width: 80,
-    align: 'center',
+    align: 'right',
   },
   {
     title: '我的持仓金额',
     key: 'myActualAmount',
     width: 80,
-    align: 'center',
+    align: 'right',
   },
   {
     title: '占比',
     key: 'myRatio',
     width: 80,
-    align: 'center',
+    align: 'right',
   },
   {
     title: '我应投入',
     key: 'shouldInvest',
     width: 80,
-    align: 'center',
+    align: 'right',
   },
   {
     title: '操作',
     key: 'action',
     width: 60,
-    align: 'center',
+    align: 'right',
   },
 ]
 
