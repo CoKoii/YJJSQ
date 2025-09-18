@@ -51,9 +51,15 @@
             <div class="amount-combined">
               <span class="amount-combined__boss">{{ formatMoney(record.bossAmount) }}</span>
               <span class="amount-combined__me">
-                <span class="amount-combined__me-actual">{{
-                  formatMoney(record.myActualAmount)
-                }}</span>
+                <span
+                  class="amount-combined__me-actual"
+                  :style="{ color: getAmountComparisonColor(record) }"
+                >
+                  {{ formatMoney(record.myActualAmount) }}
+                  <span class="amount-combined__symbol">
+                    {{ getAmountComparisonSymbol(record) || '\u00A0' }}
+                  </span>
+                </span>
                 <span class="amount-combined__me-should">{{
                   '应投入：' + formatMoney(getShouldInvest(record.bossAmount))
                 }}</span>
@@ -67,9 +73,9 @@
               <span class="ratio-combined__boss"
                 >{{ formatPercent(getBossRatio(record.bossAmount)) }}%</span
               >
-              <span class="ratio-combined__me">
+              <span class="ratio-combined__me" :style="{ color: getRatioComparisonColor(record) }">
                 <span>{{ formatPercent(getMyRatio(record.myActualAmount)) }}%</span>
-                <span class="ratio-symbol" :style="{ color: getRatioComparisonColor(record) }">
+                <span class="ratio-symbol">
                   {{ getRatioComparisonSymbol(record) || '\u00A0' }}
                 </span>
               </span>
@@ -80,7 +86,12 @@
           <template v-else-if="column.key === 'action'">
             <a-space>
               <a-button type="link" size="small" @click="handleEdit(record)"> 编辑 </a-button>
-              <a-button type="link" size="small" danger @click="handleDelete(record)">
+              <a-button
+                type="link"
+                size="small"
+                class="action-delete"
+                @click="handleDelete(record)"
+              >
                 删除
               </a-button>
             </a-space>
@@ -186,7 +197,7 @@ const columns = [
     align: 'center',
   },
   {
-    title: '占比（ 大佬 ： 我 ）',
+    title: '（大佬占比） ： （我的占比）',
     key: 'combinedRatio',
     width: 180,
     align: 'center',
@@ -194,7 +205,7 @@ const columns = [
   {
     title: '操作',
     key: 'action',
-    width: 60,
+    width: 80,
     align: 'center',
   },
 ]
@@ -271,6 +282,15 @@ function compareRatios(record) {
   return 'equal'
 }
 
+function compareAmounts(record) {
+  const myAmount = Number(record.myActualAmount) || 0
+  const shouldInvest = Number(getShouldInvest(record.bossAmount)) || 0
+
+  if (myAmount < shouldInvest) return 'lower'
+  if (myAmount > shouldInvest) return 'higher'
+  return 'equal'
+}
+
 // 获取占比对比符号
 function getRatioComparisonSymbol(record) {
   const comparison = compareRatios(record)
@@ -286,7 +306,23 @@ function getRatioComparisonColor(record) {
 
   if (comparison === 'higher') return '#52c41a' // 绿色，表示高于大佬占比
   if (comparison === 'lower') return '#ff4d4f' // 红色，表示低于大佬占比
-  return '#d9d9d9' // 灰色，表示相等
+  return 'inherit' // 持平时使用默认颜色
+}
+
+function getAmountComparisonSymbol(record) {
+  const comparison = compareAmounts(record)
+
+  if (comparison === 'lower') return '↑'
+  if (comparison === 'higher') return '↓'
+  return ''
+}
+
+function getAmountComparisonColor(record) {
+  const comparison = compareAmounts(record)
+
+  if (comparison === 'lower') return '#ff4d4f' // 红色，提示应加仓
+  if (comparison === 'higher') return '#52c41a' // 绿色，表示已满足或超额
+  return '#000000' // 持平时保持默认颜色
 }
 
 // 显示基金详情
@@ -489,7 +525,7 @@ function handleImport(file) {
 }
 
 .amount-combined__boss {
-  color: #ff4d4f;
+  color: inherit;
 }
 
 .amount-combined__me {
@@ -502,11 +538,23 @@ function handleImport(file) {
 
 .amount-combined__me-actual {
   color: inherit;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 18px;
 }
 
 .amount-combined__me-should {
   color: #666;
   font-size: 12px;
+}
+
+.amount-combined__symbol {
+  display: inline-block;
+  width: 20px;
+  text-align: center;
+  font-size: 16px;
+  font-weight: bold;
 }
 
 .ratio-combined {
@@ -527,7 +575,7 @@ function handleImport(file) {
 }
 
 .ratio-combined__boss {
-  color: #ff4d4f;
+  color: inherit;
 }
 
 .ratio-combined__me {
@@ -536,5 +584,14 @@ function handleImport(file) {
   justify-content: flex-end;
   align-items: center;
   gap: 4px;
+}
+
+.holdings-table :deep(.action-delete) {
+  color: #999;
+  opacity: 0.6;
+}
+
+.holdings-table :deep(.action-delete:hover) {
+  color: inherit;
 }
 </style>
