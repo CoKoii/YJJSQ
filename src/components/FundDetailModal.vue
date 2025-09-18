@@ -2,7 +2,7 @@
   <a-modal
     :open="visible"
     :title="`${fundInfo.name} (${fundInfo.code})`"
-    width="600px"
+    width="800px"
     @cancel="handleClose"
     :footer="null"
   >
@@ -288,6 +288,31 @@ function generatePerformanceData(netWorthTrend) {
   }))
 }
 
+function rebasePerformanceSeries(data) {
+  if (!data || data.length === 0) return []
+
+  const base = parseFloat(data[0].y)
+  if (Number.isNaN(base)) {
+    return data.map((item) => ({ ...item }))
+  }
+
+  return data.map((item) => {
+    const current = parseFloat(item.y)
+
+    if (Number.isNaN(current)) {
+      return { ...item }
+    }
+
+    const diff = current - base
+    const normalized = Math.abs(diff) < 0.000001 ? 0 : diff
+
+    return {
+      ...item,
+      y: normalized.toFixed(2),
+    }
+  })
+}
+
 // 计算成立以来总收益率
 function calculateTotalReturn(netWorthTrend) {
   if (!netWorthTrend || netWorthTrend.length < 2) return 0
@@ -478,9 +503,10 @@ function updatePerformanceChart() {
   if (!performanceChartInstance || !fundData.value.performanceData) return
 
   const filteredData = filterDataByPeriod(fundData.value.performanceData, performancePeriod.value)
+  const rebasedData = rebasePerformanceSeries(filteredData)
 
   // 为category类型的x轴准备数据
-  const xAxisData = filteredData.map((item) => {
+  const xAxisData = rebasedData.map((item) => {
     const date = new Date(item.x)
     const year = date.getFullYear()
     const month = date.getMonth() + 1
@@ -489,7 +515,7 @@ function updatePerformanceChart() {
     // 始终显示年-月-日格式
     return `${year}-${month}-${day}`
   })
-  const seriesData = filteredData.map((item) => parseFloat(item.y))
+  const seriesData = rebasedData.map((item) => parseFloat(item.y))
 
   const option = {
     title: {
