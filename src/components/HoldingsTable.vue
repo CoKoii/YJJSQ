@@ -36,10 +36,7 @@
         <template #bodyCell="{ column, record }">
           <template v-if="column.key === 'name'">
             <div>
-              <div
-                style="font-weight: 500; cursor: pointer; color: #1890ff"
-                @click="showFundDetail(record)"
-              >
+              <div style="cursor: pointer; color: #1890ff" @click="showFundDetail(record)">
                 {{ record.name }}
               </div>
               <div style="color: #999; font-size: 12px">{{ record.code }}</div>
