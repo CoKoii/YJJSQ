@@ -46,7 +46,7 @@
             </div>
           </template>
 
-          <!-- 大佬持仓金额 / 我已投入 / 我应投入 -->
+          <!-- 大佬持仓金额 / 我的持仓金额 / 我应投入 -->
           <template v-else-if="column.key === 'combinedAmount'">
             <div class="amount-combined">
               <span class="amount-combined__boss">{{ formatMoney(record.bossAmount) }}</span>
@@ -64,7 +64,9 @@
           <!-- 占比（大佬 / 我） -->
           <template v-else-if="column.key === 'combinedRatio'">
             <div class="ratio-combined">
-              <span class="ratio-combined__boss">{{ formatPercent(getBossRatio(record.bossAmount)) }}%</span>
+              <span class="ratio-combined__boss"
+                >{{ formatPercent(getBossRatio(record.bossAmount)) }}%</span
+              >
               <span class="ratio-combined__me">
                 <span>{{ formatPercent(getMyRatio(record.myActualAmount)) }}%</span>
                 <span class="ratio-symbol" :style="{ color: getRatioComparisonColor(record) }">
@@ -118,7 +120,7 @@
           />
         </a-form-item>
 
-        <a-form-item label="我已投入	（元）" name="myActualAmount">
+        <a-form-item label="我的持仓金额	（元）" name="myActualAmount">
           <a-input-number
             v-model:value="formData.myActualAmount"
             :min="0"
@@ -178,13 +180,13 @@ const columns = [
     width: 240,
   },
   {
-    title: '大佬持仓 / 我已投入',
+    title: '（大佬持仓金额） ： （我的持仓金额）',
     key: 'combinedAmount',
     width: 180,
     align: 'center',
   },
   {
-    title: '占比（ 大佬 / 我 ）',
+    title: '占比（ 大佬 ： 我 ）',
     key: 'combinedRatio',
     width: 180,
     align: 'center',
