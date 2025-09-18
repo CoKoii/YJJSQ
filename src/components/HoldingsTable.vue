@@ -46,11 +46,13 @@
             </div>
           </template>
 
-          <!-- 大佬持仓金额 -->
-          <template v-else-if="column.key === 'bossAmount'">
-            <span style="color: #ff4d4f; font-weight: 500">{{
-              formatMoney(record.bossAmount)
-            }}</span>
+          <!-- 大佬持仓金额 / 我已投入 -->
+          <template v-else-if="column.key === 'combinedAmount'">
+            <span class="amount-combined">
+              <span class="amount-combined__boss">{{ formatMoney(record.bossAmount) }}</span>
+              <span class="amount-combined__separator">/</span>
+              <span class="amount-combined__me">{{ formatMoney(record.myActualAmount) }}</span>
+            </span>
           </template>
 
           <!-- 占比 -->
@@ -61,13 +63,6 @@
           <!-- 我应投入 -->
           <template v-else-if="column.key === 'shouldInvest'">
             <span>{{ formatMoney(getShouldInvest(record.bossAmount)) }}</span>
-          </template>
-
-          <!-- 我目前投入 -->
-          <template v-else-if="column.key === 'myActualAmount'">
-            <span style="color: #ff4d4f; font-weight: 500">{{
-              formatMoney(record.myActualAmount)
-            }}</span>
           </template>
 
           <!-- 我的投入占比 -->
@@ -191,9 +186,9 @@ const columns = [
     width: 180,
   },
   {
-    title: '大佬持仓金额',
-    key: 'bossAmount',
-    width: 80,
+    title: '大佬持仓/我已投入',
+    key: 'combinedAmount',
+    width: 140,
     align: 'right',
   },
   {
@@ -205,12 +200,6 @@ const columns = [
   {
     title: '我应投入',
     key: 'shouldInvest',
-    width: 80,
-    align: 'right',
-  },
-  {
-    title: '我已投入',
-    key: 'myActualAmount',
     width: 80,
     align: 'right',
   },
@@ -500,5 +489,25 @@ function handleImport(file) {
   font-size: 16px;
   font-weight: bold;
   margin-left: 4px;
+}
+
+.amount-combined {
+  display: inline-flex;
+  align-items: baseline;
+  justify-content: flex-end;
+  font-weight: 500;
+}
+
+.amount-combined__boss {
+  color: #ff4d4f;
+}
+
+.amount-combined__separator {
+  margin: 0 4px;
+  color: #000;
+}
+
+.amount-combined__me {
+  color: #000;
 }
 </style>
