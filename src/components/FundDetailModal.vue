@@ -660,8 +660,7 @@ function updateNetValueChart() {
           // 直接返回已格式化的值
           return value
         },
-        interval: 4, // 控制标签显示间隔，每5个标签显示一个
-        rotate: 45, // 斜着显示，旋转45度
+        interval: 'auto', // 控制标签显示间隔，每5个标签显示一个
       },
     },
     yAxis: {
