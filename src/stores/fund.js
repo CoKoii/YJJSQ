@@ -133,27 +133,53 @@ export const useFundStore = defineStore(
       try {
         // 获取基金信息的API地址
         const getApiUrl = (code) => {
-          // 在开发环境使用代理，在生产环境直接访问东方财富
+          // 在开发环境使用代理
           if (import.meta.env.DEV) {
             return `/api/fund/${code}.js`
           } else {
-            // 在生产环境下直接访问东方财富的接口
-            return `https://fund.eastmoney.com/pingzhongdata/${code}.js`
+            // 在生产环境下，由于CORS限制，我们需要使用代理服务
+            // 使用多个备选代理以提高成功率
+            const proxies = [
+              `https://api.codetabs.com/v1/proxy?quest=https://fund.eastmoney.com/pingzhongdata/${code}.js`,
+              `https://cors.bridged.cc/https://fund.eastmoney.com/pingzhongdata/${code}.js`,
+              `https://api.allorigins.win/get?url=${encodeURIComponent(`https://fund.eastmoney.com/pingzhongdata/${code}.js`)}`
+            ]
+            return proxies[0] // 优先使用第一个代理
           }
         }
 
-        // 尝试使用 fetch 直接获取
         const response = await fetch(getApiUrl(fundCode), {
           method: 'GET',
-          mode: 'cors', // 允许跨域
+          headers: {
+            'Accept': 'text/plain, application/javascript, */*',
+          },
           cache: 'no-cache',
         })
-
+        
         if (!response.ok) {
-          throw new Error('基金代码不存在')
+          throw new Error(`HTTP ${response.status}: 基金代码可能不存在`)
         }
-
-        const text = await response.text()
+        
+        let text
+        if (import.meta.env.DEV) {
+          text = await response.text()
+        } else {
+          // 处理不同代理的响应格式
+          const responseText = await response.text()
+          
+          // 检查是否是allorigins的JSON格式响应
+          try {
+            const jsonData = JSON.parse(responseText)
+            if (jsonData.contents) {
+              text = jsonData.contents
+            } else {
+              text = responseText
+            }
+          } catch {
+            // 如果不是JSON，直接使用原始文本
+            text = responseText
+          }
+        }
 
         // 解析JavaScript文件中的数据
         const nameMatch = text.match(/var fS_name = "([^"]+)"/)
@@ -165,13 +191,17 @@ export const useFundStore = defineStore(
             code: codeMatch[1],
           }
         } else {
-          throw new Error('数据格式错误')
+          throw new Error('数据格式错误，可能基金代码不存在')
         }
       } catch (error) {
-        console.warn('无法获取基金信息:', error)
-
-        // 如果直接访问失败，使用备用方案：模拟数据或者提示用户手动输入
-        throw new Error('由于网络限制无法自动获取基金信息，请手动填写基金名称')
+        console.warn('获取基金信息失败:', error)
+        
+        // 在生产环境提供更友好的错误处理
+        if (!import.meta.env.DEV) {
+          throw new Error('无法自动获取基金信息，请手动填写基金名称。这通常是由于网络限制或基金代码不存在导致的。')
+        } else {
+          throw new Error('无法获取基金信息，请检查基金代码是否正确')
+        }
       }
     }
     return {

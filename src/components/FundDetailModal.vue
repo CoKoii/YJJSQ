@@ -193,27 +193,53 @@ async function fetchFundData(fundCode) {
   try {
     // 获取基金数据的API地址
     const getApiUrl = (code) => {
-      // 在开发环境使用代理，在生产环境直接访问东方财富
+      // 在开发环境使用代理
       if (import.meta.env.DEV) {
         return `/api/fund/${code}.js`
       } else {
-        // 在生产环境下直接访问东方财富的接口
-        return `https://fund.eastmoney.com/pingzhongdata/${code}.js`
+        // 在生产环境下，由于CORS限制，我们需要使用代理服务
+        // 使用多个备选代理以提高成功率
+        const proxies = [
+          `https://api.codetabs.com/v1/proxy?quest=https://fund.eastmoney.com/pingzhongdata/${code}.js`,
+          `https://cors.bridged.cc/https://fund.eastmoney.com/pingzhongdata/${code}.js`,
+          `https://api.allorigins.win/get?url=${encodeURIComponent(`https://fund.eastmoney.com/pingzhongdata/${code}.js`)}`
+        ]
+        return proxies[0] // 优先使用第一个代理
       }
     }
 
-    // 尝试使用 fetch 直接获取
     const response = await fetch(getApiUrl(fundCode), {
       method: 'GET',
-      mode: 'cors', // 允许跨域
+      headers: {
+        'Accept': 'text/plain, application/javascript, */*',
+      },
       cache: 'no-cache',
     })
 
     if (!response.ok) {
-      throw new Error('基金数据获取失败')
+      throw new Error(`HTTP ${response.status}: 基金数据获取失败`)
     }
 
-    const text = await response.text()
+    let text
+    if (import.meta.env.DEV) {
+      text = await response.text()
+    } else {
+      // 处理不同代理的响应格式
+      const responseText = await response.text()
+      
+      // 检查是否是allorigins的JSON格式响应
+      try {
+        const jsonData = JSON.parse(responseText)
+        if (jsonData.contents) {
+          text = jsonData.contents
+        } else {
+          text = responseText
+        }
+      } catch {
+        // 如果不是JSON，直接使用原始文本
+        text = responseText
+      }
+    }
 
     // 解析JavaScript文件中的数据
     const nameMatch = text.match(/var fS_name = "([^"]+)"/)
@@ -242,7 +268,7 @@ async function fetchFundData(fundCode) {
     }
   } catch (error) {
     console.error('获取基金数据失败:', error)
-    throw new Error('由于网络限制无法获取基金详细数据，请稍后重试')
+    throw new Error('无法获取基金详细数据。这可能是由于网络限制或基金代码不存在导致的。')
   }
 } // 生成业绩数据
 function generatePerformanceData(netWorthTrend) {
