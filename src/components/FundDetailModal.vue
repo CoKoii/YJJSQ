@@ -193,29 +193,27 @@ async function fetchFundData(fundCode) {
   try {
     // 获取基金数据的API地址
     const getApiUrl = (code) => {
-      // 在开发环境使用代理，在生产环境使用CORS代理
+      // 在开发环境使用代理，在生产环境直接访问东方财富
       if (import.meta.env.DEV) {
         return `/api/fund/${code}.js`
       } else {
-        // 使用 allorigins.win 作为CORS代理服务
-        const targetUrl = `http://fund.eastmoney.com/pingzhongdata/${code}.js`
-        return `https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl)}`
+        // 在生产环境下直接访问东方财富的接口
+        return `https://fund.eastmoney.com/pingzhongdata/${code}.js`
       }
     }
 
-    const response = await fetch(getApiUrl(fundCode))
+    // 尝试使用 fetch 直接获取
+    const response = await fetch(getApiUrl(fundCode), {
+      method: 'GET',
+      mode: 'cors', // 允许跨域
+      cache: 'no-cache',
+    })
+
     if (!response.ok) {
       throw new Error('基金数据获取失败')
     }
 
-    let text
-    if (import.meta.env.DEV) {
-      text = await response.text()
-    } else {
-      // 在生产环境下，allorigins 返回 JSON 格式，需要提取 contents 字段
-      const data = await response.json()
-      text = data.contents
-    }
+    const text = await response.text()
 
     // 解析JavaScript文件中的数据
     const nameMatch = text.match(/var fS_name = "([^"]+)"/)
@@ -244,11 +242,9 @@ async function fetchFundData(fundCode) {
     }
   } catch (error) {
     console.error('获取基金数据失败:', error)
-    throw new Error('无法获取基金数据，请检查基金代码是否正确或稍后重试')
+    throw new Error('由于网络限制无法获取基金详细数据，请稍后重试')
   }
-}
-
-// 生成业绩数据
+} // 生成业绩数据
 function generatePerformanceData(netWorthTrend) {
   if (!netWorthTrend || netWorthTrend.length === 0) return []
 

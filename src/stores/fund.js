@@ -130,32 +130,30 @@ export const useFundStore = defineStore(
 
     // 根据基金代码获取基金信息
     async function fetchFundInfo(fundCode) {
-      // 获取基金信息的API地址
-      const getApiUrl = (code) => {
-        // 在开发环境使用代理，在生产环境使用CORS代理
-        if (import.meta.env.DEV) {
-          return `/api/fund/${code}.js`
-        } else {
-          // 使用 allorigins.win 作为CORS代理服务
-          const targetUrl = `http://fund.eastmoney.com/pingzhongdata/${code}.js`
-          return `https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl)}`
-        }
-      }
-
       try {
-        const response = await fetch(getApiUrl(fundCode))
+        // 获取基金信息的API地址
+        const getApiUrl = (code) => {
+          // 在开发环境使用代理，在生产环境直接访问东方财富
+          if (import.meta.env.DEV) {
+            return `/api/fund/${code}.js`
+          } else {
+            // 在生产环境下直接访问东方财富的接口
+            return `https://fund.eastmoney.com/pingzhongdata/${code}.js`
+          }
+        }
+
+        // 尝试使用 fetch 直接获取
+        const response = await fetch(getApiUrl(fundCode), {
+          method: 'GET',
+          mode: 'cors', // 允许跨域
+          cache: 'no-cache',
+        })
+
         if (!response.ok) {
           throw new Error('基金代码不存在')
         }
 
-        let text
-        if (import.meta.env.DEV) {
-          text = await response.text()
-        } else {
-          // 在生产环境下，allorigins 返回 JSON 格式，需要提取 contents 字段
-          const data = await response.json()
-          text = data.contents
-        }
+        const text = await response.text()
 
         // 解析JavaScript文件中的数据
         const nameMatch = text.match(/var fS_name = "([^"]+)"/)
@@ -170,12 +168,12 @@ export const useFundStore = defineStore(
           throw new Error('数据格式错误')
         }
       } catch (error) {
-        // 如果CORS代理失败，尝试提供更友好的错误信息
         console.warn('无法获取基金信息:', error)
-        throw new Error('无法获取基金信息，请检查基金代码是否正确或稍后重试')
+
+        // 如果直接访问失败，使用备用方案：模拟数据或者提示用户手动输入
+        throw new Error('由于网络限制无法自动获取基金信息，请手动填写基金名称')
       }
     }
-
     return {
       // 状态
       bossTotal,
