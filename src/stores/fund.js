@@ -142,7 +142,7 @@ export const useFundStore = defineStore(
             const proxies = [
               `https://api.codetabs.com/v1/proxy?quest=https://fund.eastmoney.com/pingzhongdata/${code}.js`,
               `https://cors.bridged.cc/https://fund.eastmoney.com/pingzhongdata/${code}.js`,
-              `https://api.allorigins.win/get?url=${encodeURIComponent(`https://fund.eastmoney.com/pingzhongdata/${code}.js`)}`
+              `https://api.allorigins.win/get?url=${encodeURIComponent(`https://fund.eastmoney.com/pingzhongdata/${code}.js`)}`,
             ]
             return proxies[0] // 优先使用第一个代理
           }
@@ -151,22 +151,22 @@ export const useFundStore = defineStore(
         const response = await fetch(getApiUrl(fundCode), {
           method: 'GET',
           headers: {
-            'Accept': 'text/plain, application/javascript, */*',
+            Accept: 'text/plain, application/javascript, */*',
           },
           cache: 'no-cache',
         })
-        
+
         if (!response.ok) {
           throw new Error(`HTTP ${response.status}: 基金代码可能不存在`)
         }
-        
+
         let text
         if (import.meta.env.DEV) {
           text = await response.text()
         } else {
           // 处理不同代理的响应格式
           const responseText = await response.text()
-          
+
           // 检查是否是allorigins的JSON格式响应
           try {
             const jsonData = JSON.parse(responseText)
@@ -195,10 +195,12 @@ export const useFundStore = defineStore(
         }
       } catch (error) {
         console.warn('获取基金信息失败:', error)
-        
+
         // 在生产环境提供更友好的错误处理
         if (!import.meta.env.DEV) {
-          throw new Error('无法自动获取基金信息，请手动填写基金名称。这通常是由于网络限制或基金代码不存在导致的。')
+          throw new Error(
+            '无法自动获取基金信息，请手动填写基金名称。这通常是由于网络限制或基金代码不存在导致的。',
+          )
         } else {
           throw new Error('无法获取基金信息，请检查基金代码是否正确')
         }

@@ -202,7 +202,7 @@ async function fetchFundData(fundCode) {
         const proxies = [
           `https://api.codetabs.com/v1/proxy?quest=https://fund.eastmoney.com/pingzhongdata/${code}.js`,
           `https://cors.bridged.cc/https://fund.eastmoney.com/pingzhongdata/${code}.js`,
-          `https://api.allorigins.win/get?url=${encodeURIComponent(`https://fund.eastmoney.com/pingzhongdata/${code}.js`)}`
+          `https://api.allorigins.win/get?url=${encodeURIComponent(`https://fund.eastmoney.com/pingzhongdata/${code}.js`)}`,
         ]
         return proxies[0] // 优先使用第一个代理
       }
@@ -211,7 +211,7 @@ async function fetchFundData(fundCode) {
     const response = await fetch(getApiUrl(fundCode), {
       method: 'GET',
       headers: {
-        'Accept': 'text/plain, application/javascript, */*',
+        Accept: 'text/plain, application/javascript, */*',
       },
       cache: 'no-cache',
     })
@@ -226,7 +226,7 @@ async function fetchFundData(fundCode) {
     } else {
       // 处理不同代理的响应格式
       const responseText = await response.text()
-      
+
       // 检查是否是allorigins的JSON格式响应
       try {
         const jsonData = JSON.parse(responseText)
