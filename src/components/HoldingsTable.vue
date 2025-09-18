@@ -72,7 +72,19 @@
 
           <!-- 我的投入占比 -->
           <template v-else-if="column.key === 'myRatio'">
-            <span style="font-weight: bold">{{ getMyRatio(record.myActualAmount) }}%</span>
+            <span
+              style="
+                font-weight: bold;
+                display: flex;
+                align-items: center;
+                justify-content: flex-end;
+              "
+            >
+              <span>{{ getMyRatio(record.myActualAmount) }}%</span>
+              <span class="ratio-symbol" :style="{ color: getRatioComparisonColor(record) }">
+                {{ getRatioComparisonSymbol(record) || '\u00A0' }}
+              </span>
+            </span>
           </template>
 
           <!-- 操作 -->
@@ -263,6 +275,32 @@ function getMyRatio(myAmount) {
   return ((myAmount / fundStore.myTotal) * 100).toFixed(2)
 }
 
+// 获取占比对比符号
+function getRatioComparisonSymbol(record) {
+  const bossRatio = parseFloat(getBossRatio(record.bossAmount))
+  const myRatio = parseFloat(getMyRatio(record.myActualAmount))
+
+  if (myRatio > bossRatio) {
+    return '↑'
+  } else if (myRatio < bossRatio) {
+    return '↓'
+  }
+  return ''
+}
+
+// 获取占比对比符号的颜色
+function getRatioComparisonColor(record) {
+  const bossRatio = parseFloat(getBossRatio(record.bossAmount))
+  const myRatio = parseFloat(getMyRatio(record.myActualAmount))
+
+  if (myRatio > bossRatio) {
+    return '#52c41a' // 绿色，表示高于大佬占比
+  } else if (myRatio < bossRatio) {
+    return '#ff4d4f' // 红色，表示低于大佬占比
+  }
+  return '#d9d9d9' // 灰色，表示相等
+}
+
 // 显示基金详情
 function showFundDetail(record) {
   selectedFundCode.value = record.code
@@ -438,5 +476,29 @@ function handleImport(file) {
 
 .holdings-table :deep(.ant-table-fixed-right) {
   box-shadow: -6px 0 6px -4px rgba(0, 0, 0, 0.15);
+}
+
+/* 占比对比符号样式 */
+.holdings-table :deep(.ratio-comparison) {
+  font-weight: bold;
+  font-size: 16px;
+  margin-left: 4px;
+}
+
+.holdings-table :deep(.ratio-comparison.higher) {
+  color: #52c41a;
+}
+
+.holdings-table :deep(.ratio-comparison.lower) {
+  color: #ff4d4f;
+}
+
+.holdings-table :deep(.ratio-symbol) {
+  display: inline-block;
+  width: 20px;
+  text-align: center;
+  font-size: 16px;
+  font-weight: bold;
+  margin-left: 4px;
 }
 </style>
