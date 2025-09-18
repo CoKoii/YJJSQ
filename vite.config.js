@@ -17,4 +17,13 @@ export default defineConfig(({ command }) => ({
     outDir: 'dist',
     assetsDir: 'assets',
   },
+  server: {
+    proxy: {
+      '/api/fund': {
+        target: 'http://fund.eastmoney.com',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/fund/, '/pingzhongdata'),
+      },
+    },
+  },
 }))

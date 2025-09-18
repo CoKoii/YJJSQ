@@ -128,6 +128,28 @@ export const useFundStore = defineStore(
       }
     }
 
+    // 根据基金代码获取基金信息
+    async function fetchFundInfo(fundCode) {
+      const response = await fetch(`/api/fund/${fundCode}.js`)
+      if (!response.ok) {
+        throw new Error('基金代码不存在')
+      }
+      const text = await response.text()
+
+      // 解析JavaScript文件中的数据
+      const nameMatch = text.match(/var fS_name = "([^"]+)"/)
+      const codeMatch = text.match(/var fS_code = "([^"]+)"/)
+
+      if (nameMatch && codeMatch) {
+        return {
+          name: nameMatch[1],
+          code: codeMatch[1],
+        }
+      } else {
+        throw new Error('数据格式错误')
+      }
+    }
+
     return {
       // 状态
       bossTotal,
@@ -148,6 +170,7 @@ export const useFundStore = defineStore(
       deleteHolding,
       exportConfig,
       importConfig,
+      fetchFundInfo,
     }
   },
   {

@@ -36,7 +36,12 @@
         <template #bodyCell="{ column, record }">
           <template v-if="column.key === 'name'">
             <div>
-              <div style="font-weight: 500">{{ record.name }}</div>
+              <div
+                style="font-weight: 500; cursor: pointer; color: #1890ff"
+                @click="showFundDetail(record)"
+              >
+                {{ record.name }}
+              </div>
               <div style="color: #999; font-size: 12px">{{ record.code }}</div>
             </div>
           </template>
@@ -92,12 +97,16 @@
       :confirm-loading="saving"
     >
       <a-form ref="formRef" :model="formData" :rules="formRules" layout="vertical">
-        <a-form-item label="基金名称" name="name">
-          <a-input v-model:value="formData.name" placeholder="请输入基金名称" />
+        <a-form-item label="基金代码" name="code">
+          <a-input
+            v-model:value="formData.code"
+            placeholder="请输入基金代码"
+            @blur="handleCodeBlur"
+          />
         </a-form-item>
 
-        <a-form-item label="基金代码" name="code">
-          <a-input v-model:value="formData.code" placeholder="请输入基金代码" />
+        <a-form-item label="基金名称" name="name">
+          <a-input v-model:value="formData.name" placeholder="请输入基金名称" />
         </a-form-item>
 
         <a-form-item label="大佬持仓金额（元）" name="bossAmount">
@@ -140,6 +149,13 @@
         <div style="color: #666; font-size: 12px">{{ deletingRecord.code }}</div>
       </div>
     </a-modal>
+
+    <!-- 基金详情弹窗 -->
+    <FundDetailModal
+      :visible="fundDetailVisible"
+      :fundCode="selectedFundCode"
+      @update:visible="fundDetailVisible = $event"
+    />
   </div>
 </template>
 
@@ -148,8 +164,13 @@ import { ref, reactive } from 'vue'
 import { message } from 'ant-design-vue'
 import { PlusOutlined, DownloadOutlined, UploadOutlined } from '@ant-design/icons-vue'
 import { useFundStore } from '../stores/fund'
+import FundDetailModal from './FundDetailModal.vue'
 
 const fundStore = useFundStore()
+
+// 基金详情弹窗状态
+const fundDetailVisible = ref(false)
+const selectedFundCode = ref('')
 
 const columns = [
   {
@@ -212,6 +233,7 @@ const formData = reactive({
 })
 
 const formRules = {
+  code: [{ required: true, message: '请输入基金代码' }],
   name: [{ required: true, message: '请输入基金名称' }],
   bossAmount: [{ required: true, message: '请输入大佬持仓金额' }],
 }
@@ -239,6 +261,12 @@ function getShouldInvest(bossAmount) {
 function getMyRatio(myAmount) {
   if (fundStore.myTotal === 0) return '0.00'
   return ((myAmount / fundStore.myTotal) * 100).toFixed(2)
+}
+
+// 显示基金详情
+function showFundDetail(record) {
+  selectedFundCode.value = record.code
+  fundDetailVisible.value = true
 }
 
 // 显示添加弹窗
@@ -280,6 +308,22 @@ function resetForm() {
   formData.code = ''
   formData.bossAmount = null
   formData.myActualAmount = 0
+}
+
+// 处理基金代码失焦事件
+async function handleCodeBlur() {
+  if (formData.code && formData.code.trim()) {
+    try {
+      const fundInfo = await fundStore.fetchFundInfo(formData.code.trim())
+      if (fundInfo && fundInfo.name) {
+        formData.name = fundInfo.name
+        message.success('已自动填充基金名称')
+      }
+    } catch (error) {
+      console.error('获取基金信息失败:', error)
+      message.warning('无法获取基金信息，请手动填写基金名称')
+    }
+  }
 }
 
 // 弹窗确认
