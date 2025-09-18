@@ -131,72 +131,54 @@ export const useFundStore = defineStore(
     // 根据基金代码获取基金信息
     async function fetchFundInfo(fundCode) {
       try {
-        // 获取基金信息的API地址
-        const getApiUrl = (code) => {
-          // 在开发环境使用代理
-          if (import.meta.env.DEV) {
-            return `/api/fund/${code}.js`
-          } else {
-            // 在生产环境下，由于CORS限制，我们需要使用代理服务
-            // 使用多个备选代理以提高成功率
-            const proxies = [
-              `https://api.codetabs.com/v1/proxy?quest=https://fund.eastmoney.com/pingzhongdata/${code}.js`,
-              `https://cors.bridged.cc/https://fund.eastmoney.com/pingzhongdata/${code}.js`,
-              `https://api.allorigins.win/get?url=${encodeURIComponent(`https://fund.eastmoney.com/pingzhongdata/${code}.js`)}`,
-            ]
-            return proxies[0] // 优先使用第一个代理
-          }
+        if (!fundCode) {
+          throw new Error('基金代码不能为空')
         }
 
-        const response = await fetch(getApiUrl(fundCode), {
-          method: 'GET',
-          headers: {
-            Accept: 'text/plain, application/javascript, */*',
-          },
-          cache: 'no-cache',
+        const data = await new Promise((resolve, reject) => {
+          if (typeof window === 'undefined' || typeof document === 'undefined') {
+            reject(new Error('当前环境无法发起基金信息请求'))
+            return
+          }
+
+          const callbackName = 'jsonpgz' // 该接口固定的回调名称
+          const prevCallback = window[callbackName]
+          const script = document.createElement('script')
+
+          const cleanup = () => {
+            if (prevCallback) {
+              window[callbackName] = prevCallback
+            } else {
+              delete window[callbackName]
+            }
+            script.remove()
+          }
+
+          window[callbackName] = (payload) => {
+            cleanup()
+            if (!payload || !payload.name || !payload.fundcode) {
+              reject(new Error('基金数据格式异常'))
+              return
+            }
+            resolve(payload)
+          }
+
+          script.src = `https://fundgz.1234567.com.cn/js/${fundCode}.js?rt=${Date.now()}`
+          script.onerror = (error) => {
+            cleanup()
+            reject(error)
+          }
+
+          document.head.appendChild(script)
         })
 
-        if (!response.ok) {
-          throw new Error(`HTTP ${response.status}: 基金代码可能不存在`)
-        }
-
-        let text
-        if (import.meta.env.DEV) {
-          text = await response.text()
-        } else {
-          // 处理不同代理的响应格式
-          const responseText = await response.text()
-
-          // 检查是否是allorigins的JSON格式响应
-          try {
-            const jsonData = JSON.parse(responseText)
-            if (jsonData.contents) {
-              text = jsonData.contents
-            } else {
-              text = responseText
-            }
-          } catch {
-            // 如果不是JSON，直接使用原始文本
-            text = responseText
-          }
-        }
-
-        // 解析JavaScript文件中的数据
-        const nameMatch = text.match(/var fS_name = "([^"]+)"/)
-        const codeMatch = text.match(/var fS_code = "([^"]+)"/)
-
-        if (nameMatch && codeMatch) {
-          return {
-            name: nameMatch[1],
-            code: codeMatch[1],
-          }
-        } else {
-          throw new Error('数据格式错误，可能基金代码不存在')
+        return {
+          name: data.name,
+          code: data.fundcode,
         }
       } catch (error) {
         console.warn('获取基金信息失败:', error)
 
-        // 在生产环境提供更友好的错误处理
         if (!import.meta.env.DEV) {
           throw new Error(
             '无法自动获取基金信息，请手动填写基金名称。这通常是由于网络限制或基金代码不存在导致的。',

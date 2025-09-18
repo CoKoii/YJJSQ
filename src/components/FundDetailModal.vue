@@ -190,87 +190,94 @@ async function loadFundData() {
 
 // 获取基金数据
 async function fetchFundData(fundCode) {
-  try {
-    // 获取基金数据的API地址
-    const getApiUrl = (code) => {
-      // 在开发环境使用代理
-      if (import.meta.env.DEV) {
-        return `/api/fund/${code}.js`
-      } else {
-        // 在生产环境下，由于CORS限制，我们需要使用代理服务
-        // 使用多个备选代理以提高成功率
-        const proxies = [
-          `https://api.codetabs.com/v1/proxy?quest=https://fund.eastmoney.com/pingzhongdata/${code}.js`,
-          `https://cors.bridged.cc/https://fund.eastmoney.com/pingzhongdata/${code}.js`,
-          `https://api.allorigins.win/get?url=${encodeURIComponent(`https://fund.eastmoney.com/pingzhongdata/${code}.js`)}`,
-        ]
-        return proxies[0] // 优先使用第一个代理
-      }
-    }
+  if (!fundCode) {
+    throw new Error('基金代码不能为空')
+  }
 
-    const response = await fetch(getApiUrl(fundCode), {
-      method: 'GET',
-      headers: {
-        Accept: 'text/plain, application/javascript, */*',
-      },
-      cache: 'no-cache',
+  try {
+    const data = await new Promise((resolve, reject) => {
+      if (typeof window === 'undefined' || typeof document === 'undefined') {
+        reject(new Error('当前环境无法发起基金数据请求'))
+        return
+      }
+
+      const script = document.createElement('script')
+      const src = `https://fund.eastmoney.com/pingzhongdata/${fundCode}.js?v=${Date.now()}`
+
+      const prevState = {
+        fS_name: window.fS_name,
+        fS_code: window.fS_code,
+        Data_netWorthTrend: window.Data_netWorthTrend,
+      }
+
+      const restore = () => {
+        if (prevState.fS_name !== undefined) {
+          window.fS_name = prevState.fS_name
+        } else {
+          delete window.fS_name
+        }
+
+        if (prevState.fS_code !== undefined) {
+          window.fS_code = prevState.fS_code
+        } else {
+          delete window.fS_code
+        }
+
+        if (prevState.Data_netWorthTrend !== undefined) {
+          window.Data_netWorthTrend = prevState.Data_netWorthTrend
+        } else {
+          delete window.Data_netWorthTrend
+        }
+      }
+
+      const cleanup = () => {
+        script.remove()
+        restore()
+      }
+
+      script.src = src
+      script.onload = () => {
+        try {
+          const name = window.fS_name || fundCode
+          const code = window.fS_code || fundCode
+          const trend = Array.isArray(window.Data_netWorthTrend)
+            ? window.Data_netWorthTrend.map((item) => ({ x: item.x, y: item.y }))
+            : []
+
+          if (!trend.length) {
+            reject(new Error('未获取到有效的净值数据'))
+            return
+          }
+
+          resolve({
+            name,
+            code,
+            netWorthTrend: trend,
+            performanceData: generatePerformanceData(trend),
+          })
+        } catch (err) {
+          reject(err)
+        } finally {
+          cleanup()
+        }
+      }
+
+      script.onerror = (error) => {
+        cleanup()
+        reject(error)
+      }
+
+      document.head.appendChild(script)
     })
 
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}: 基金数据获取失败`)
-    }
-
-    let text
-    if (import.meta.env.DEV) {
-      text = await response.text()
-    } else {
-      // 处理不同代理的响应格式
-      const responseText = await response.text()
-
-      // 检查是否是allorigins的JSON格式响应
-      try {
-        const jsonData = JSON.parse(responseText)
-        if (jsonData.contents) {
-          text = jsonData.contents
-        } else {
-          text = responseText
-        }
-      } catch {
-        // 如果不是JSON，直接使用原始文本
-        text = responseText
-      }
-    }
-
-    // 解析JavaScript文件中的数据
-    const nameMatch = text.match(/var fS_name = "([^"]+)"/)
-    const codeMatch = text.match(/var fS_code = "([^"]+)"/)
-    const netWorthMatch = text.match(/var Data_netWorthTrend = (\[.*?\]);/)
-
-    const name = nameMatch ? nameMatch[1] : fundCode
-    const code = codeMatch ? codeMatch[1] : fundCode
-
-    let netWorthTrend = []
-    if (netWorthMatch) {
-      try {
-        // 清理并解析净值数据
-        const cleanedData = netWorthMatch[1].replace(/,\s*\]/g, ']')
-        netWorthTrend = JSON.parse(cleanedData)
-      } catch (e) {
-        console.error('解析净值数据失败:', e)
-      }
-    }
-
-    return {
-      name,
-      code,
-      netWorthTrend,
-      performanceData: generatePerformanceData(netWorthTrend),
-    }
+    return data
   } catch (error) {
     console.error('获取基金数据失败:', error)
     throw new Error('无法获取基金详细数据。这可能是由于网络限制或基金代码不存在导致的。')
   }
-} // 生成业绩数据
+}
+
+// 生成业绩数据
 function generatePerformanceData(netWorthTrend) {
   if (!netWorthTrend || netWorthTrend.length === 0) return []
 
