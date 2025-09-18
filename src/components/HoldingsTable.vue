@@ -46,40 +46,32 @@
             </div>
           </template>
 
-          <!-- 大佬持仓金额 / 我已投入 -->
+          <!-- 大佬持仓金额 / 我已投入 / 我应投入 -->
           <template v-else-if="column.key === 'combinedAmount'">
-            <span class="amount-combined">
+            <div class="amount-combined">
               <span class="amount-combined__boss">{{ formatMoney(record.bossAmount) }}</span>
-              <span class="amount-combined__separator">/</span>
-              <span class="amount-combined__me">{{ formatMoney(record.myActualAmount) }}</span>
-            </span>
-          </template>
-
-          <!-- 占比 -->
-          <template v-else-if="column.key === 'ratio'">
-            <span style="font-weight: bold">{{ getBossRatio(record.bossAmount) }}%</span>
-          </template>
-
-          <!-- 我应投入 -->
-          <template v-else-if="column.key === 'shouldInvest'">
-            <span>{{ formatMoney(getShouldInvest(record.bossAmount)) }}</span>
-          </template>
-
-          <!-- 我的投入占比 -->
-          <template v-else-if="column.key === 'myRatio'">
-            <span
-              style="
-                font-weight: bold;
-                display: flex;
-                align-items: center;
-                justify-content: flex-end;
-              "
-            >
-              <span>{{ getMyRatio(record.myActualAmount) }}%</span>
-              <span class="ratio-symbol" :style="{ color: getRatioComparisonColor(record) }">
-                {{ getRatioComparisonSymbol(record) || '\u00A0' }}
+              <span class="amount-combined__me">
+                <span class="amount-combined__me-actual">{{
+                  formatMoney(record.myActualAmount)
+                }}</span>
+                <span class="amount-combined__me-should">{{
+                  '应投入：' + formatMoney(getShouldInvest(record.bossAmount))
+                }}</span>
               </span>
-            </span>
+            </div>
+          </template>
+
+          <!-- 占比（大佬 / 我） -->
+          <template v-else-if="column.key === 'combinedRatio'">
+            <div class="ratio-combined">
+              <span class="ratio-combined__boss">{{ formatPercent(getBossRatio(record.bossAmount)) }}%</span>
+              <span class="ratio-combined__me">
+                <span>{{ formatPercent(getMyRatio(record.myActualAmount)) }}%</span>
+                <span class="ratio-symbol" :style="{ color: getRatioComparisonColor(record) }">
+                  {{ getRatioComparisonSymbol(record) || '\u00A0' }}
+                </span>
+              </span>
+            </div>
           </template>
 
           <!-- 操作 -->
@@ -183,37 +175,25 @@ const columns = [
   {
     title: '基金名称',
     key: 'name',
-    width: 180,
+    width: 240,
   },
   {
-    title: '大佬持仓/我已投入',
+    title: '大佬持仓 / 我已投入',
     key: 'combinedAmount',
-    width: 140,
-    align: 'right',
+    width: 180,
+    align: 'center',
   },
   {
-    title: '占比',
-    key: 'ratio',
-    width: 80,
-    align: 'right',
-  },
-  {
-    title: '我应投入',
-    key: 'shouldInvest',
-    width: 80,
-    align: 'right',
-  },
-  {
-    title: '占比',
-    key: 'myRatio',
-    width: 80,
-    align: 'right',
+    title: '占比（ 大佬 / 我 ）',
+    key: 'combinedRatio',
+    width: 180,
+    align: 'center',
   },
   {
     title: '操作',
     key: 'action',
     width: 60,
-    align: 'right',
+    align: 'center',
   },
 ]
 
@@ -226,17 +206,24 @@ const deletingRecord = ref(null)
 
 // 表单相关
 const formRef = ref()
-const formData = reactive({
+const defaultFormState = {
   name: '',
   code: '',
   bossAmount: null,
   myActualAmount: 0,
-})
+}
+
+const formData = reactive({ ...defaultFormState })
 
 const formRules = {
   code: [{ required: true, message: '请输入基金代码' }],
   name: [{ required: true, message: '请输入基金名称' }],
   bossAmount: [{ required: true, message: '请输入大佬持仓金额' }],
+}
+
+// 表单辅助
+function setFormData(partial = {}) {
+  Object.assign(formData, defaultFormState, partial)
 }
 
 // 格式化金额
@@ -245,10 +232,15 @@ function formatMoney(value) {
   return ` ${Number(value).toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
 }
 
-// 计算大佬持仓占比
+function getRatio(amount, total) {
+  if (!total) return 0
+  const numericAmount = Number(amount)
+  if (!Number.isFinite(numericAmount)) return 0
+  return (numericAmount / total) * 100
+}
+
 function getBossRatio(amount) {
-  if (fundStore.bossTotal === 0) return '0.00'
-  return ((amount / fundStore.bossTotal) * 100).toFixed(2)
+  return getRatio(amount, fundStore.bossTotal)
 }
 
 // 计算我应投入的金额
@@ -258,35 +250,40 @@ function getShouldInvest(bossAmount) {
   return bossAmount * ratio
 }
 
-// 计算我的投入占比
 function getMyRatio(myAmount) {
-  if (fundStore.myTotal === 0) return '0.00'
-  return ((myAmount / fundStore.myTotal) * 100).toFixed(2)
+  return getRatio(myAmount, fundStore.myTotal)
+}
+
+function formatPercent(value) {
+  const numericValue = Number(value)
+  if (!Number.isFinite(numericValue)) return '0.00'
+  return numericValue.toFixed(2)
+}
+
+function compareRatios(record) {
+  const bossRatio = getBossRatio(record.bossAmount)
+  const myRatio = getMyRatio(record.myActualAmount)
+
+  if (myRatio > bossRatio) return 'higher'
+  if (myRatio < bossRatio) return 'lower'
+  return 'equal'
 }
 
 // 获取占比对比符号
 function getRatioComparisonSymbol(record) {
-  const bossRatio = parseFloat(getBossRatio(record.bossAmount))
-  const myRatio = parseFloat(getMyRatio(record.myActualAmount))
+  const comparison = compareRatios(record)
 
-  if (myRatio > bossRatio) {
-    return '↓'
-  } else if (myRatio < bossRatio) {
-    return '↑'
-  }
+  if (comparison === 'higher') return '↓'
+  if (comparison === 'lower') return '↑'
   return ''
 }
 
 // 获取占比对比符号的颜色
 function getRatioComparisonColor(record) {
-  const bossRatio = parseFloat(getBossRatio(record.bossAmount))
-  const myRatio = parseFloat(getMyRatio(record.myActualAmount))
+  const comparison = compareRatios(record)
 
-  if (myRatio > bossRatio) {
-    return '#52c41a' // 绿色，表示高于大佬占比
-  } else if (myRatio < bossRatio) {
-    return '#ff4d4f' // 红色，表示低于大佬占比
-  }
+  if (comparison === 'higher') return '#52c41a' // 绿色，表示高于大佬占比
+  if (comparison === 'lower') return '#ff4d4f' // 红色，表示低于大佬占比
   return '#d9d9d9' // 灰色，表示相等
 }
 
@@ -306,10 +303,8 @@ function showAddModal() {
 // 处理编辑
 function handleEdit(record) {
   editingRecord.value = record
-  formData.name = record.name
-  formData.code = record.code
-  formData.bossAmount = record.bossAmount
-  formData.myActualAmount = record.myActualAmount
+  const { name, code, bossAmount, myActualAmount } = record
+  setFormData({ name, code, bossAmount, myActualAmount })
   modalVisible.value = true
 }
 
@@ -331,10 +326,7 @@ function confirmDelete() {
 
 // 重置表单
 function resetForm() {
-  formData.name = ''
-  formData.code = ''
-  formData.bossAmount = null
-  formData.myActualAmount = 0
+  setFormData()
 }
 
 // 处理基金代码失焦事件
@@ -359,11 +351,12 @@ async function handleModalOk() {
     await formRef.value.validate()
     saving.value = true
 
+    const { name, code, bossAmount, myActualAmount } = formData
     const data = {
-      name: formData.name,
-      code: formData.code,
-      bossAmount: formData.bossAmount,
-      myActualAmount: formData.myActualAmount || 0,
+      name,
+      code,
+      bossAmount,
+      myActualAmount: myActualAmount || 0,
     }
 
     if (editingRecord.value) {
@@ -467,21 +460,6 @@ function handleImport(file) {
   box-shadow: -6px 0 6px -4px rgba(0, 0, 0, 0.15);
 }
 
-/* 占比对比符号样式 */
-.holdings-table :deep(.ratio-comparison) {
-  font-weight: bold;
-  font-size: 16px;
-  margin-left: 4px;
-}
-
-.holdings-table :deep(.ratio-comparison.higher) {
-  color: #52c41a;
-}
-
-.holdings-table :deep(.ratio-comparison.lower) {
-  color: #ff4d4f;
-}
-
 .holdings-table :deep(.ratio-symbol) {
   display: inline-block;
   width: 20px;
@@ -492,22 +470,69 @@ function handleImport(file) {
 }
 
 .amount-combined {
-  display: inline-flex;
-  align-items: baseline;
-  justify-content: flex-end;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
   font-weight: 500;
+  gap: 8px;
+  padding: 0 12px;
+}
+
+.amount-combined__boss,
+.amount-combined__me {
+  flex: 1;
+  min-width: 0;
+  text-align: left;
 }
 
 .amount-combined__boss {
   color: #ff4d4f;
 }
 
-.amount-combined__separator {
-  margin: 0 4px;
-  color: #000;
-}
-
 .amount-combined__me {
   color: #000;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
+
+.amount-combined__me-actual {
+  color: inherit;
+}
+
+.amount-combined__me-should {
+  color: #666;
+  font-size: 12px;
+}
+
+.ratio-combined {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  font-weight: 500;
+  gap: 8px;
+  padding: 0 12px;
+}
+
+.ratio-combined__boss,
+.ratio-combined__me {
+  flex: 1;
+  min-width: 0;
+  text-align: left;
+}
+
+.ratio-combined__boss {
+  color: #ff4d4f;
+}
+
+.ratio-combined__me {
+  color: #000;
+  display: inline-flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 4px;
 }
 </style>
