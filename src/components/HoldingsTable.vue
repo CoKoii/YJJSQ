@@ -281,9 +281,9 @@ function getRatioComparisonSymbol(record) {
   const myRatio = parseFloat(getMyRatio(record.myActualAmount))
 
   if (myRatio > bossRatio) {
-    return '↑'
-  } else if (myRatio < bossRatio) {
     return '↓'
+  } else if (myRatio < bossRatio) {
+    return '↑'
   }
   return ''
 }

@@ -131,9 +131,9 @@ function getPositionRatioComparisonSymbol() {
   const myRatio = parseFloat(fundStore.myPositionRatio)
 
   if (myRatio > bossRatio) {
-    return '↑'
-  } else if (myRatio < bossRatio) {
     return '↓'
+  } else if (myRatio < bossRatio) {
+    return '↑'
   }
   return ''
 }
