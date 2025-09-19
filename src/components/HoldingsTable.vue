@@ -4,6 +4,11 @@
       <!-- 操作栏 -->
       <template #extra>
         <a-space>
+          <a-button @click="showUsageModal">
+            <template #icon><QuestionCircleOutlined /></template>
+            使用说明
+          </a-button>
+
           <a-button @click="handleExport">
             <template #icon><DownloadOutlined /></template>
             导出配置
@@ -165,13 +170,56 @@
       :fundCode="selectedFundCode"
       @update:visible="fundDetailVisible = $event"
     />
+
+    <!-- 使用说明弹窗 -->
+    <a-modal v-model:open="usageModalVisible" title="使用说明" :footer="null" width="800px">
+      <div class="usage-explanation">
+        <div class="color-legend">
+          <h4>颜色说明：</h4>
+          <div class="legend-item">
+            <span class="color-indicator red"></span>
+            <span class="legend-text"><strong>红色</strong>：表示投入低于大佬，需要加大投入</span>
+          </div>
+          <div class="legend-item">
+            <span class="color-indicator green"></span>
+            <span class="legend-text"><strong>绿色</strong>：表示投入超过大佬的比例</span>
+          </div>
+        </div>
+
+        <div class="strategy-notes">
+          <p>
+            除了金额和占比要按比例保持一致外，还有一个重要因素是<strong>持有份额</strong>，这个比较复杂，不便计算，且超过一年的无法操作无法查看，所以只能凭感觉操作。
+          </p>
+
+          <div class="strategy-detail">
+            <h5>操作方式：</h5>
+            <ul>
+              <li>
+                <strong>低位策略</strong
+                >：如果预计比大佬之前的低位还要低，就应该加大投入，适当超过大佬的比例，持有更多份额比
+              </li>
+              <li>
+                <strong>后续调整</strong
+                >：下一次如果位置不是很低，可以比大佬少买，甚至不买，来拉回持仓比例
+              </li>
+              <li><strong>最终目标</strong>：份额/持仓金额/持仓占比就会趋近一致</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </a-modal>
   </div>
 </template>
 
 <script setup>
 import { ref, reactive } from 'vue'
 import { message } from 'ant-design-vue'
-import { PlusOutlined, DownloadOutlined, UploadOutlined } from '@ant-design/icons-vue'
+import {
+  PlusOutlined,
+  DownloadOutlined,
+  UploadOutlined,
+  QuestionCircleOutlined,
+} from '@ant-design/icons-vue'
 import { useFundStore } from '../stores/fund'
 import FundDetailModal from './FundDetailModal.vue'
 
@@ -180,6 +228,9 @@ const fundStore = useFundStore()
 // 基金详情弹窗状态
 const fundDetailVisible = ref(false)
 const selectedFundCode = ref('')
+
+// 使用说明弹窗状态
+const usageModalVisible = ref(false)
 
 const columns = [
   {
@@ -326,6 +377,11 @@ function getAmountComparisonColor(record) {
 function showFundDetail(record) {
   selectedFundCode.value = record.code
   fundDetailVisible.value = true
+}
+
+// 显示使用说明弹窗
+function showUsageModal() {
+  usageModalVisible.value = true
 }
 
 // 显示添加弹窗
@@ -590,5 +646,80 @@ function handleImport(file) {
 
 .holdings-table :deep(.action-delete:hover) {
   color: inherit;
+}
+
+/* 使用说明弹窗样式 */
+.usage-explanation {
+  line-height: 1.6;
+}
+
+.usage-explanation .color-legend {
+  margin-bottom: 24px;
+  padding: 16px;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  border-left: 4px solid #1677ff;
+}
+
+.usage-explanation .color-legend h4 {
+  margin: 0 0 12px 0;
+  color: #262626;
+  font-weight: 600;
+}
+
+.usage-explanation .legend-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.usage-explanation .color-indicator {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  margin-right: 8px;
+  border: 1px solid #d9d9d9;
+}
+
+.usage-explanation .color-indicator.red {
+  background-color: #ff4d4f;
+}
+
+.usage-explanation .color-indicator.green {
+  background-color: #52c41a;
+}
+
+.usage-explanation .legend-text {
+  color: #595959;
+}
+
+.usage-explanation .strategy-notes p {
+  margin-bottom: 16px;
+  color: #595959;
+}
+
+.usage-explanation .strategy-detail {
+  margin: 16px 0;
+  padding: 16px;
+  background-color: #f6ffed;
+  border-radius: 8px;
+  border-left: 4px solid #52c41a;
+}
+
+.usage-explanation .strategy-detail h5 {
+  margin: 0 0 12px 0;
+  color: #262626;
+  font-weight: 600;
+}
+
+.usage-explanation .strategy-detail ul {
+  margin: 0;
+  padding-left: 20px;
+  color: #595959;
+}
+
+.usage-explanation .strategy-detail li {
+  margin-bottom: 8px;
 }
 </style>
