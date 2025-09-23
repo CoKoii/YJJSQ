@@ -325,8 +325,12 @@ function compareRatios(record) {
   const bossRatio = getBossRatio(record.bossAmount)
   const myRatio = getMyRatio(record.myActualAmount)
 
-  if (myRatio > bossRatio) return 'higher'
-  if (myRatio < bossRatio) return 'lower'
+  // 精确到小数点后两位进行比较
+  const bossRatioRounded = Math.round(bossRatio * 100) / 100
+  const myRatioRounded = Math.round(myRatio * 100) / 100
+
+  if (myRatioRounded > bossRatioRounded) return 'higher'
+  if (myRatioRounded < bossRatioRounded) return 'lower'
   return 'equal'
 }
 
@@ -334,8 +338,12 @@ function compareAmounts(record) {
   const myAmount = Number(record.myActualAmount) || 0
   const shouldInvest = Number(getShouldInvest(record.bossAmount)) || 0
 
-  if (myAmount < shouldInvest) return 'lower'
-  if (myAmount > shouldInvest) return 'higher'
+  // 精确到小数点后两位进行比较
+  const myAmountRounded = Math.round(myAmount * 100) / 100
+  const shouldInvestRounded = Math.round(shouldInvest * 100) / 100
+
+  if (myAmountRounded < shouldInvestRounded) return 'lower'
+  if (myAmountRounded > shouldInvestRounded) return 'higher'
   return 'equal'
 }
 

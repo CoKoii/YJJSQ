@@ -130,9 +130,13 @@ function getPositionRatioComparisonSymbol() {
   const bossRatio = parseFloat(fundStore.bossPositionRatio)
   const myRatio = parseFloat(fundStore.myPositionRatio)
 
-  if (myRatio > bossRatio) {
+  // 精确到小数点后两位进行比较
+  const bossRatioRounded = Math.round(bossRatio * 100) / 100
+  const myRatioRounded = Math.round(myRatio * 100) / 100
+
+  if (myRatioRounded > bossRatioRounded) {
     return '↓'
-  } else if (myRatio < bossRatio) {
+  } else if (myRatioRounded < bossRatioRounded) {
     return '↑'
   }
   return ''
@@ -143,9 +147,13 @@ function getPositionRatioComparisonColor() {
   const bossRatio = parseFloat(fundStore.bossPositionRatio)
   const myRatio = parseFloat(fundStore.myPositionRatio)
 
-  if (myRatio > bossRatio) {
+  // 精确到小数点后两位进行比较
+  const bossRatioRounded = Math.round(bossRatio * 100) / 100
+  const myRatioRounded = Math.round(myRatio * 100) / 100
+
+  if (myRatioRounded > bossRatioRounded) {
     return '#52c41a' // 绿色，表示高于大佬占比
-  } else if (myRatio < bossRatio) {
+  } else if (myRatioRounded < bossRatioRounded) {
     return '#ff4d4f' // 红色，表示低于大佬占比
   }
   return '#d9d9d9' // 灰色，表示相等
